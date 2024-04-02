@@ -33,6 +33,7 @@ public:
 			q = 0;
 		} else {
 			step_zero = true;
+			p = 3 - p;
 			q = 1;
 		}
 		internal_pair = make_pair(p, q);
@@ -83,6 +84,7 @@ extern "C" int mancalaResult(int flag, int *_seq, int size) {
 			hole[player - 1][0] += hole[2 - player][7 - hi->second] + 1;
 			hole[2 - player][7 - hi->second] = 0;
 			hole[player - 1][hi->second] = 0;
+			flag = 3 - player;
 		} else if (hi->second > 0) { // not a bonus
 			flag = 3 - player;
 		}
