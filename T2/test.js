@@ -1,7 +1,7 @@
 import assert from "assert";
 
 // Choose proper "import" depending on your PL.
-// import { mancalaResult } from "./t2-as/build/release.js";
+import { mancalaResult } from "./t2_cpp/glue.js";
 // import { mancala_result as mancalaResult } from "./t2_rust/pkg/t1_rust.js"
 // [Write your own "import" for other PLs.]
 
