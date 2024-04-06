@@ -1,0 +1,1 @@
+emcc -o ghost.js -O3 test.cpp -s EXPORT_ES6=1 -s MODULARIZE=1 -s EXPORT_NAME=stubLoader -s EXPORTED_FUNCTIONS="['_mancala_board','_malloc','_free']" -s EXPORTED_RUNTIME_METHODS="['ccall']" -s TOTAL_MEMORY=2GB --bind -s ALLOW_MEMORY_GROWTH=1
