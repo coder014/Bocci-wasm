@@ -6,7 +6,7 @@
 typedef unsigned char byte;
 using namespace std;
 
-#define AB_DEPTH 10
+#define AB_DEPTH 13
 #define AB_VALUE_MIN -1000
 #define AB_VALUE_MAX 1000
 
@@ -115,10 +115,39 @@ vector<pair<int, GameState>> GameState::possibleMoves() const {
 			moves.push_back({i, ts});
 		}
 	}
+	sort(moves.begin(), moves.end(),
+	     [](const pair<int, GameState> &a, const pair<int, GameState> &b) {
+		     return a.second.score() > b.second.score();
+	     });
 	return moves;
 }
 int GameState::score() const {
-	return (int)hole[myid][0] - (int)hole[1 - myid][0];
+	int score = (int)hole[myid][0] - (int)hole[1 - myid][0];
+	if (gameover())
+		return score;
+	for (int i = 1; i <= 6; i++) {
+		int need = (7 - i) - hole[myid][i];
+		if (need == 0) { // bonus
+			score += 6;
+		} else if (need > 0) { // normal case
+			if (hole[myid][i] && hole[myid][7 - need] == 0 && hole[1 - myid][need]) {
+				// takeover
+				score += (hole[1 - myid][need] + 1) * 5 / 4;
+			}
+		}
+
+		need = (7 - i) - hole[1 - myid][i];
+		if (need == 0) { // rival bonus
+			score -= 6;
+		} else if (need > 0) { // rival normal case
+			if (hole[1 - myid][i] && hole[1 - myid][7 - need] == 0 &&
+			    hole[myid][need]) {
+				// rival takeover
+				score -= (hole[myid][need] + 1) * 5 / 4;
+			}
+		}
+	}
+	return score;
 }
 
 pair<int, int> maxAB(int, pair<int, int>, const vector<pair<int, GameState>> &);
@@ -171,6 +200,10 @@ pair<int, int> minAB(int k, pair<int, int> ab, const vector<pair<int, GameState>
 }
 
 extern "C" int mancalaOperator(int flag, int state[]) {
+	if (state[6] + state[13] == 0) { // special best choice
+		delete[] state;
+		return flag * 10 + 3;
+	}
 	myid = flag - 1;
 	GameState orig(myid, state);
 	delete[] state;
