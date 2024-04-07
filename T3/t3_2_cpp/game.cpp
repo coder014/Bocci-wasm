@@ -6,7 +6,7 @@
 typedef unsigned char byte;
 using namespace std;
 
-#define AB_DEPTH 13
+#define AB_DEPTH 10
 #define AB_VALUE_MIN -1000
 #define AB_VALUE_MAX 1000
 
@@ -72,6 +72,7 @@ struct GameState {
 	}
 };
 int myid;
+bool dumb;
 
 void GameState::move(const int choice) {
 	// seeding routine
@@ -123,16 +124,18 @@ vector<pair<int, GameState>> GameState::possibleMoves() const {
 }
 int GameState::score() const {
 	int score = (int)hole[myid][0] - (int)hole[1 - myid][0];
-	if (gameover())
+	if (gameover() || dumb)
 		return score;
 	for (int i = 1; i <= 6; i++) {
 		int need = (7 - i) - hole[myid][i];
 		if (need == 0) { // bonus
 			score += 6;
 		} else if (need > 0) { // normal case
+			if (need < 6)
+				score += 5 - need;
 			if (hole[myid][i] && hole[myid][7 - need] == 0 && hole[1 - myid][need]) {
 				// takeover
-				score += (hole[1 - myid][need] + 1) * 5 / 4;
+				score += (hole[1 - myid][need] + 1) * 4 / 3;
 			}
 		}
 
@@ -140,10 +143,12 @@ int GameState::score() const {
 		if (need == 0) { // rival bonus
 			score -= 6;
 		} else if (need > 0) { // rival normal case
+			if (need < 6)
+				score -= 5 - need;
 			if (hole[1 - myid][i] && hole[1 - myid][7 - need] == 0 &&
 			    hole[myid][need]) {
 				// rival takeover
-				score -= (hole[myid][need] + 1) * 5 / 4;
+				score -= (hole[myid][need] + 1) * 4 / 3;
 			}
 		}
 	}
@@ -207,6 +212,16 @@ extern "C" int mancalaOperator(int flag, int state[]) {
 	myid = flag - 1;
 	GameState orig(myid, state);
 	delete[] state;
-	auto m = runAB(AB_DEPTH, orig, {AB_VALUE_MIN, AB_VALUE_MAX}).second;
+	int m;
+	if (orig.hole[myid][0] < 10) {
+		dumb = false;
+		m = runAB(AB_DEPTH, orig, {AB_VALUE_MIN, AB_VALUE_MAX}).second;
+	} else if (orig.hole[myid][0] < 16) {
+		dumb = false;
+		m = runAB(AB_DEPTH + 2, orig, {AB_VALUE_MIN, AB_VALUE_MAX}).second;
+	} else {
+		dumb = true;
+		m = runAB(AB_DEPTH + 3, orig, {AB_VALUE_MIN, AB_VALUE_MAX}).second;
+	}
 	return flag * 10 + m;
 }
